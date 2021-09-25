@@ -2,15 +2,15 @@
  * @flow
  */
 
-import ReactNativeBlobUtil from 'react-native-blob-util';
+import RNFetchBlob from 'rn-fetch-blob'
 
 const createStoragePathIfNeeded = path =>
-  ReactNativeBlobUtil.fs
+RNFetchBlob.fs
     .exists(path)
     .then(exists =>
       exists
         ? new Promise(resolve => resolve(true))
-        : ReactNativeBlobUtil.fs.mkdir(path)
+        : RNFetchBlob.fs.mkdir(path)
     );
 
 const onStorageReadyFactory = (storagePath: string) => (func: Function) => {
@@ -19,7 +19,7 @@ const onStorageReadyFactory = (storagePath: string) => (func: Function) => {
   return (...args: Array<any>) => storage.then(() => func(...args));
 };
 
-const defaultStoragePath = `${ReactNativeBlobUtil.fs.dirs.DocumentDir}/persistStore`;
+const defaultStoragePath = `${RNFetchBlob.fs.dirs.DocumentDir}/persistStore`;
 
 let onStorageReady = onStorageReadyFactory(defaultStoragePath);
 let options = {
@@ -42,7 +42,7 @@ const FilesystemStorage = {
   },
 
   setItem: (key: string, value: string, callback?: (error: ?Error) => void) =>
-    ReactNativeBlobUtil.fs
+  RNFetchBlob.fs
       .writeFile(pathForKey(key), value, options.encoding)
       .then(() => callback && callback())
       .catch(error => callback && callback(error)),
@@ -51,7 +51,7 @@ const FilesystemStorage = {
     (key: string, callback?: (error: ?Error, result: ?(Array<number> | string)) => void) => {
       const filePath = pathForKey(options.toFileName(key));
 
-      return ReactNativeBlobUtil.fs
+      return RNFetchBlob.fs
         .readFile(filePath, options.encoding)
         .then(data => {
           if (!callback) {
@@ -60,7 +60,7 @@ const FilesystemStorage = {
           callback(null, data);
         })
         .catch(err => {
-          return ReactNativeBlobUtil.fs
+          return RNFetchBlob.fs
             .exists(filePath)
             .then(exists => {
               if (!exists) {
@@ -86,13 +86,13 @@ const FilesystemStorage = {
       callback(err);
     }
 
-    return ReactNativeBlobUtil.fs
+    return RNFetchBlob.fs
       .exists(filePath)
       .then(exists => {
         if (!exists) {
           return null;
         } else {
-          return ReactNativeBlobUtil.fs
+          return RNFetchBlob.fs
             .unlink(filePath)
             .then(() => callback && callback())
             .catch(handleError);
@@ -102,13 +102,13 @@ const FilesystemStorage = {
   },
 
   getAllKeys: (callback?: (error: ?Error, keys: ?Array<string>) => any) =>
-    ReactNativeBlobUtil.fs
+    RNFetchBlob.fs
       .exists(options.storagePath)
       .then(exists =>
-        exists ? true : ReactNativeBlobUtil.fs.mkdir(options.storagePath)
+        exists ? true : RNFetchBlob.fs.mkdir(options.storagePath)
       )
       .then(() =>
-        ReactNativeBlobUtil.fs
+        RNFetchBlob.fs
           .ls(options.storagePath)
           .then(files => files.map<string>(file => options.fromFileName(file)))
           .then(files => {
